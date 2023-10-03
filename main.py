@@ -1,33 +1,54 @@
-import heapq
+class DisjointSet:
+    def __init__(self, vertices):
+        self.parent = {}
+        for v in vertices:
+            self.parent[v] = v
+
+    def find(self, v):
+        if self.parent[v] != v:
+            self.parent[v] = self.find(self.parent[v])
+        return self.parent[v]
+
+    def union(self, v1, v2):
+        root1 = self.find(v1)
+        root2 = self.find(v2)
+
+        if root1 != root2:
+            self.parent[root1] = root2
 
 
-def dijkstra(graph, start):
-    distances = {vertex: float('inf') for vertex in graph}
-    distances[start] = 0
+def kruskal(graph):
+    minimum_spanning_tree = set()
+    edges = sorted(graph, key=lambda x: x[2])
+    vertices = set()
 
-    priority_queue = [(0, start)]
-    while priority_queue:
-        current_distance, current_vertex = heapq.heappop(priority_queue)
+    for edge in edges:
+        v1, v2, _ = edge
+        vertices.add(v1)
+        vertices.add(v2)
 
-        if current_distance > distances[current_vertex]:
-            continue
+    disjoint_set = DisjointSet(vertices)
 
-        for neighbor, weight in graph[str(current_vertex)].items():
-            distance = current_distance + weight
-            if distance < distances[neighbor]:
-                distances[neighbor] = distance
-                heapq.heappush(priority_queue, (distance, neighbor))
+    for edge in edges:
+        v1, v2, _ = edge
+        if disjoint_set.find(v1) != disjoint_set.find(v2):
+            disjoint_set.union(v1, v2)
+            minimum_spanning_tree.add(edge)
 
-    return distances
+    return minimum_spanning_tree
 
 
-graph = {
-    '0': {'1': 3, '2': 1},
-    '1': {'0': 3, '4': 4},
-    '2': {'0': 1, '6': 6, '3': 2},
-    '3': {'2': 2, '6': 5, '5': 8, '4': 7},
-    '4': {'1': 4, '5': 2, '3': 7},
-    '5': {'3': 8, '4': 2},
-    '6': {'2': 6, '3': 5}
-}
-print(dijkstra(graph, 0))
+graph = [
+    ('0', '1', 3),
+    ('0', '2', 1),
+    ('1', '4', 4),
+    ('4', '5', 2),
+    ('4', '3', 7),
+    ('2', '3', 2),
+    ('2', '6', 6),
+    ('3', '6', 5),
+    ('3', '5', 8)
+]
+
+minimum_spanning_tree = kruskal(graph)
+print(minimum_spanning_tree)
