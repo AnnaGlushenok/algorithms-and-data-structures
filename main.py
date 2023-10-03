@@ -1,54 +1,68 @@
-class DisjointSet:
-    def __init__(self, vertices):
-        self.parent = {}
-        for v in vertices:
-            self.parent[v] = v
-
-    def find(self, v):
-        if self.parent[v] != v:
-            self.parent[v] = self.find(self.parent[v])
-        return self.parent[v]
-
-    def union(self, v1, v2):
-        root1 = self.find(v1)
-        root2 = self.find(v2)
-
-        if root1 != root2:
-            self.parent[root1] = root2
+from collections import deque
 
 
-def kruskal(graph):
-    minimum_spanning_tree = set()
-    edges = sorted(graph, key=lambda x: x[2])
-    vertices = set()
+def wave_algorithm(graph, start_node, end_node):
+    queue = deque()
+    visited = set()
+    distance = {}
+    prev = {}
 
-    for edge in edges:
-        v1, v2, _ = edge
-        vertices.add(v1)
-        vertices.add(v2)
+    queue.append(start_node)
+    visited.add(start_node)
+    distance[start_node] = 0
+    prev[start_node] = None
 
-    disjoint_set = DisjointSet(vertices)
+    while queue:
+        current_node = queue.popleft()
 
-    for edge in edges:
-        v1, v2, _ = edge
-        if disjoint_set.find(v1) != disjoint_set.find(v2):
-            disjoint_set.union(v1, v2)
-            minimum_spanning_tree.add(edge)
+        if current_node == end_node:
+            break
 
-    return minimum_spanning_tree
+        for neighbor in graph[current_node]:
+            if neighbor not in visited:
+                queue.append(neighbor)
+                visited.add(neighbor)
+                distance[neighbor] = distance[current_node] + 1
+                prev[neighbor] = current_node
+
+    if end_node not in distance:
+        return None
+
+    path = []
+    current = end_node
+    while current is not None:
+        path.append(current)
+        current = prev[current]
+
+    path.reverse()
+    return path
 
 
-graph = [
-    ('0', '1', 3),
-    ('0', '2', 1),
-    ('1', '4', 4),
-    ('4', '5', 2),
-    ('4', '3', 7),
-    ('2', '3', 2),
-    ('2', '6', 6),
-    ('3', '6', 5),
-    ('3', '5', 8)
-]
+maze = {
+    'Enter': ['1', '8'],
+    '1': ['Enter', '2'],
+    '2': ['1', '3'],
+    '3': ['2', '4', '11'],
+    '4': ['3', '5'],
+    '5': ['4', '11'],
+    '6': ['7', '14'],
+    '7': ['6', 'Exit'],
+    '8': ['Enter', '9'],
+    '9': ['8', '10'],
+    '10': ['9'],
+    '11': ['3', '5', '12', '14'],
+    '12': ['11', '13'],
+    '13': ['12', '14'],
+    '14': ['6', '11', '13'],
+    'Exit': ['7'],
+}
 
-minimum_spanning_tree = kruskal(graph)
-print(minimum_spanning_tree)
+start = 'Enter'
+end = 'Exit'
+
+result = wave_algorithm(maze, start, end)
+
+if result:
+    print("Путь найден:", result)
+else:
+    print("Путь не найден.")
